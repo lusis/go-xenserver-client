@@ -3,6 +3,7 @@ package client
 import (
 	"errors"
 	"fmt"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/nilshell/xmlrpc"
 )
@@ -47,9 +48,9 @@ func (client *XenAPIClient) Login() (err error) {
 	if err == nil {
 		// err might not be set properly, so check the reference
 		if result["Value"] == nil {
-			return errors.New ("Invalid credentials supplied")
+			return errors.New("Invalid credentials supplied")
 		}
-	}	
+	}
 	client.Session = result["Value"]
 	return err
 }
@@ -87,6 +88,22 @@ func (client *XenAPIClient) APICall(result *APIResult, method string, params ...
 		result.Value = res["Value"]
 	}
 	return
+}
+
+func (client *XenAPIClient) GetVMs() (vms []*VM, err error) {
+	vms = make([]*VM, 0)
+	result := APIResult{}
+	err = client.APICall(&result, "VM.get_all")
+	if err != nil {
+		return vms, err
+	}
+	for _, elem := range result.Value.([]interface{}) {
+		vm := new(VM)
+		vm.Ref = elem.(string)
+		vm.Client = client
+		vms = append(vms, vm)
+	}
+	return vms, nil
 }
 
 func (client *XenAPIClient) GetHosts() (hosts []*Host, err error) {
@@ -351,7 +368,7 @@ func (client *XenAPIClient) CreateNetwork(name_label string, name_description st
 
 	net_rec := make(xmlrpc.Struct)
 	net_rec["name_label"] = name_label
-	net_rec["name_description"] = name_description 
+	net_rec["name_description"] = name_description
 	net_rec["bridge"] = bridge
 	net_rec["other_config"] = make(xmlrpc.Struct)
 

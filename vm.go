@@ -2,8 +2,9 @@ package client
 
 import (
 	"fmt"
-	"github.com/nilshell/xmlrpc"
 	"strconv"
+
+	"github.com/nilshell/xmlrpc"
 )
 
 type VM XenAPIObject
@@ -21,8 +22,7 @@ func (self *VM) Clone(name_label string) (new_instance *VM, err error) {
 	return
 }
 
-
-func (self *VM) Copy (new_name string, targetSr *SR) (new_instance *VM, err error) {
+func (self *VM) Copy(new_name string, targetSr *SR) (new_instance *VM, err error) {
 	new_instance = new(VM)
 
 	result := APIResult{}
@@ -489,7 +489,7 @@ func (self *VM) ConnectNetwork(network *Network, device string) (vif *VIF, err e
 
 //      Setters
 
-func (self *VM) SetVCpuMax( vcpus uint) (err error) {
+func (self *VM) SetVCpuMax(vcpus uint) (err error) {
 	result := APIResult{}
 	strVcpu := fmt.Sprintf("%d", vcpus)
 
@@ -501,7 +501,7 @@ func (self *VM) SetVCpuMax( vcpus uint) (err error) {
 	return
 }
 
-func (self *VM) SetVCpuAtStartup( vcpus uint) (err error) {
+func (self *VM) SetVCpuAtStartup(vcpus uint) (err error) {
 	result := APIResult{}
 	strVcpu := fmt.Sprintf("%d", vcpus)
 
@@ -594,3 +594,15 @@ func (self *VM) SetHaAlwaysRun(ha_always_run bool) (err error) {
 	return
 }
 
+func (self *VM) GetRecord() (record map[string]interface{}, err error) {
+	record = make(map[string]interface{})
+	result := APIResult{}
+	err = self.Client.APICall(&result, "VM.get_record", self.Ref)
+	if err != nil {
+		return record, err
+	}
+	for k, v := range result.Value.(xmlrpc.Struct) {
+		record[k] = v
+	}
+	return record, nil
+}
